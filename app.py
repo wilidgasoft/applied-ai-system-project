@@ -1,8 +1,29 @@
+import json
 import streamlit as st
 from datetime import date
 from pathlib import Path
 import pandas as pd
 import pawpal_system as pawpal
+
+# ── Optional AI modules — degrade gracefully without ANTHROPIC_API_KEY ────────
+try:
+    from ai_advisor import suggest_tasks_for_pet as _suggest_tasks
+    _HAS_AI_ADVISOR = True
+except ImportError:
+    _HAS_AI_ADVISOR = False
+
+try:
+    from plan_agent import generate_plan_reasoning as _plan_reasoning
+    from conflict_resolver import resolve_conflicts as _resolve_conflicts
+    _HAS_PLAN_AGENT = True
+except ImportError:
+    _HAS_PLAN_AGENT = False
+
+try:
+    from vet_advisor import ask_vet as _ask_vet
+    _HAS_VET_ADVISOR = True
+except ImportError:
+    _HAS_VET_ADVISOR = False
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="wide")
 
@@ -158,6 +179,84 @@ else:
 st.divider()
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 1.5 — AI Task Suggestions (RAG)
+# ═══════════════════════════════════════════════════════════════════════════════
+if not _HAS_AI_ADVISOR:
+    st.info(
+        "🤖 **AI Task Suggestions** are available once you install `anthropic` "
+        "and set the `ANTHROPIC_API_KEY` environment variable."
+    )
+elif owner.pets:
+    with st.expander("🤖 AI Task Suggestions (powered by Claude + knowledge base)"):
+        ai_pet_name = st.selectbox(
+            "Get suggestions for", [p.name for p in owner.pets], key="ai_pet_select"
+        )
+        ai_pet = next(p for p in owner.pets if p.name == ai_pet_name)
+        st.caption(
+            f"Retrieves breed-specific care facts for **{ai_pet.breed}** "
+            f"from the local knowledge base before calling Claude."
+        )
+
+        if st.button("Get AI Suggestions", key="ai_suggest_btn"):
+            with st.spinner("Consulting veterinary knowledge base…"):
+                try:
+                    raw = _suggest_tasks(
+                        ai_pet.species, ai_pet.breed,
+                        ai_pet.age_years, ai_pet.weight_kg,
+                    )
+                    suggestions = json.loads(raw)
+                    st.session_state["ai_suggestions"] = suggestions
+                    st.session_state["ai_suggestions_pet"] = ai_pet_name
+                except json.JSONDecodeError as exc:
+                    st.error(f"AI returned invalid JSON: {exc}")
+                    st.session_state.pop("ai_suggestions", None)
+                except Exception as exc:
+                    st.error(f"Could not get suggestions: {exc}")
+                    st.session_state.pop("ai_suggestions", None)
+
+        if (
+            "ai_suggestions" in st.session_state
+            and st.session_state.get("ai_suggestions_pet") == ai_pet_name
+        ):
+            suggestions = st.session_state["ai_suggestions"]
+            st.caption(f"Suggested **{len(suggestions)}** tasks for {ai_pet_name}:")
+            df_rows = [
+                {
+                    "Task": s.get("name", ""),
+                    "Category": s.get("category", ""),
+                    "Duration (min)": s.get("duration_minutes", 0),
+                    "Priority": s.get("priority", 1),
+                    "Required": "✅" if s.get("is_required") else "—",
+                    "Frequency": pawpal.FREQUENCY_LABEL.get(s.get("frequency", "daily"), s.get("frequency", "")),
+                    "Start": s.get("notes", ""),
+                }
+                for s in suggestions
+            ]
+            st.dataframe(pd.DataFrame(df_rows), use_container_width=True, hide_index=True)
+
+            if st.button("➕ Add All to Schedule", key="ai_add_all_btn"):
+                added = 0
+                for s in suggestions:
+                    try:
+                        ai_pet.add_task(pawpal.CareTask(
+                            name=s["name"],
+                            category=s.get("category", "enrichment"),
+                            duration_minutes=int(s.get("duration_minutes", 20)),
+                            priority=int(s.get("priority", 3)),
+                            is_required=bool(s.get("is_required", False)),
+                            frequency=s.get("frequency", "daily"),
+                            notes=s.get("notes", "08:00"),
+                        ))
+                        added += 1
+                    except Exception:
+                        pass
+                st.success(f"✅ Added {added} task(s) to {ai_pet_name}!")
+                st.session_state.pop("ai_suggestions", None)
+                st.rerun()
+
+st.divider()
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 2 — Add a task
 # ═══════════════════════════════════════════════════════════════════════════════
 st.header("📋 Add a Task")
@@ -286,11 +385,16 @@ if st.button("Generate Schedule", type="primary"):
                        "🐱" if pet.species.lower() == "cat" else "🐾")
             st.subheader(f"{pet_icon} {pet.name}  ·  {pet.breed}")
 
-            # ── Conflict warnings ─────────────────────────────────────────────
-            conflicts = schedule.get_conflicts()
-            if conflicts:
-                st.error(f"⚠️ {len(conflicts)} conflict(s) detected — fix before starting your day:")
-                for c in conflicts:
+            # ── Conflict resolution (agentic) + warnings ──────────────────────
+            if _HAS_PLAN_AGENT:
+                unresolved = _resolve_conflicts(schedule)
+                if len(schedule.get_conflicts()) < len(unresolved or [schedule.get_conflicts()]):
+                    st.caption("🔧 Auto-resolved some conflicts by reassigning start times.")
+            else:
+                unresolved = schedule.get_conflicts()
+            if unresolved:
+                st.error(f"⚠️ {len(unresolved)} conflict(s) detected — fix before starting your day:")
+                for c in unresolved:
                     readable = c.split("  ", 1)[-1] if "  " in c else c
                     st.warning(f"**Overlap:** {readable}")
             else:
@@ -311,6 +415,21 @@ if st.button("Generate Schedule", type="primary"):
                 f"{pet_done} completed"
             )
             grand_total += pet_total
+
+            # ── AI Plan Reasoning (agentic) ───────────────────────────────────
+            if _HAS_PLAN_AGENT:
+                plan = pawpal.Plan.generate(owner, pet, today)
+                if plan is not None:
+                    with st.spinner("✍️ Generating plan reasoning…"):
+                        try:
+                            reasoning = _plan_reasoning(plan)
+                            plan.reasoning = reasoning
+                            st.info(f"🤖 **AI Reasoning:** {reasoning}")
+                            if plan.get_warnings():
+                                for w in plan.get_warnings():
+                                    st.warning(w)
+                        except Exception as exc:
+                            st.caption(f"_(AI reasoning unavailable: {exc})_")
 
         # ── Overall budget bar ────────────────────────────────────────────────
         st.divider()
@@ -336,3 +455,59 @@ if st.button("Generate Schedule", type="primary"):
             st.error(f"⚠️ {over} min over budget — consider skipping optional tasks.")
         else:
             st.success(f"✅ {remaining} min to spare — your day is on track!")
+
+st.divider()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 4 — Ask the Vet AI (Specialized Model)
+# ═══════════════════════════════════════════════════════════════════════════════
+st.header("🩺 Ask the Vet AI")
+
+if not _HAS_VET_ADVISOR:
+    st.info(
+        "Install `anthropic` and set `ANTHROPIC_API_KEY` to enable Dr. PawPal, "
+        "your on-demand veterinary care advisor."
+    )
+elif not owner.pets:
+    st.warning("Add at least one pet to start chatting with Dr. PawPal.")
+else:
+    vet_pet_name = st.selectbox(
+        "Ask about", [p.name for p in owner.pets], key="vet_pet_select"
+    )
+    vet_pet = next(p for p in owner.pets if p.name == vet_pet_name)
+    st.caption(
+        "Dr. PawPal is a specialized AI advisor with hard-coded veterinary rules. "
+        "For real medical concerns, always consult a licensed veterinarian."
+    )
+
+    chat_key = f"vet_chat_{vet_pet_name}"
+    if chat_key not in st.session_state:
+        st.session_state[chat_key] = []
+
+    history: list[dict] = st.session_state[chat_key]
+
+    for msg in history:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+
+    _, col_clear = st.columns([6, 1])
+    with col_clear:
+        if st.button("🗑 Clear", key="vet_clear_btn"):
+            st.session_state[chat_key] = []
+            st.rerun()
+
+    user_input = st.chat_input(f"Ask Dr. PawPal about {vet_pet_name}…")
+    if user_input:
+        history.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.write(user_input)
+        with st.chat_message("assistant"):
+            with st.spinner("Dr. PawPal is thinking…"):
+                try:
+                    reply = _ask_vet(vet_pet, user_input, history[:-1])
+                    st.write(reply)
+                    history.append({"role": "assistant", "content": reply})
+                except Exception as exc:
+                    err = f"Vet AI error: {exc}"
+                    st.error(err)
+                    history.pop()

@@ -134,11 +134,11 @@ class Vet:
 
     def add_recommendation(self, task: CareTask) -> None:
         """Add a care task to this vet's list of recommendations."""
-        pass
+        self.recommended_tasks.append(task)
 
     def get_recommendations(self) -> list[CareTask]:
         """Return all tasks recommended by this vet."""
-        pass
+        return list(self.recommended_tasks)
 
 
 @dataclass
@@ -276,19 +276,19 @@ class Schedule:
 
     def add_task(self, task: CareTask) -> None:
         """Add a care task to this schedule."""
-        pass
+        self.tasks.append(task)
 
     def remove_task(self, task_id: str) -> None:
         """Remove a task by its unique id."""
-        pass
+        self.tasks = [t for t in self.tasks if t.id != task_id]
 
     def get_total_duration(self) -> int:
         """Return the sum of all task durations in minutes."""
-        pass
+        return sum(t.duration_minutes for t in self.tasks)
 
     def fits_in_budget(self) -> bool:
         """Check whether total task duration fits within owner's available time."""
-        pass
+        return self.get_total_duration() <= self.owner.available_time_minutes
 
     def sort_by_priority(self) -> None:
         """Sort the schedule's task list in-place from highest to lowest priority.
@@ -482,12 +482,48 @@ class Plan:
         3. Fill remaining time with optional tasks sorted by priority (high → low).
         4. Record skipped tasks and emit warnings for any skipped required tasks.
         """
-        pass
+        pet.sync_vet_tasks()
+
+        required = [t for t in pet.care_tasks if t.is_required]
+        optional = sorted(
+            [t for t in pet.care_tasks if not t.is_required],
+            key=lambda t: t.priority,
+            reverse=True,
+        )
+
+        schedule = Schedule(date=date, owner=owner, pet=pet, tasks=list(required))
+        budget_used = sum(t.duration_minutes for t in required)
+        skipped: list[CareTask] = []
+        warnings: list[str] = []
+
+        if budget_used > owner.available_time_minutes:
+            warnings.append(
+                f"Required tasks ({budget_used} min) exceed the available time budget "
+                f"({owner.available_time_minutes} min)."
+            )
+
+        for task in optional:
+            if budget_used + task.duration_minutes <= owner.available_time_minutes:
+                schedule.tasks.append(task)
+                budget_used += task.duration_minutes
+            else:
+                skipped.append(task)
+
+        return cls(schedule=schedule, reasoning="", skipped_tasks=skipped, warnings=warnings)
 
     def get_summary(self) -> str:
         """Return a human-readable summary of the plan and its scheduled tasks."""
-        pass
+        sched = self.schedule
+        total = sum(t.duration_minutes for t in sched.tasks)
+        lines = [
+            f"Plan for {sched.pet.name} on {sched.date}",
+            f"{len(sched.tasks)} tasks scheduled, {len(self.skipped_tasks)} skipped",
+            f"Total time: {total} min / {sched.owner.available_time_minutes} min available",
+        ]
+        for w in self.warnings:
+            lines.append(f"⚠️  {w}")
+        return "\n".join(lines)
 
     def get_warnings(self) -> list[str]:
         """Return any warnings generated during plan creation (e.g. skipped required tasks)."""
-        pass
+        return self.warnings

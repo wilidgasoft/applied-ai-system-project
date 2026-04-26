@@ -1,0 +1,110 @@
+{
+  "dog": {
+    "general": [
+      "Dogs require fresh water available at all times.",
+      "Annual vet checkups are recommended for healthy adult dogs; senior dogs (7+) benefit from biannual visits.",
+      "Dogs need daily exercise to maintain a healthy weight and mental wellbeing.",
+      "Dental hygiene is important — teeth should be brushed at least 3 times per week.",
+      "Dogs are social animals and need daily interaction and mental stimulation.",
+      "Vaccinations should be kept up to date according to the vet's schedule."
+    ],
+    "golden retriever": [
+      "Golden Retrievers need 60–90 minutes of vigorous exercise daily, ideally split into two sessions.",
+      "Their dense double coat requires brushing 2–3 times per week to prevent matting and reduce shedding.",
+      "They are prone to hip and elbow dysplasia — avoid high-impact jumping in puppies under 18 months.",
+      "Goldens love swimming, which is a low-impact exercise great for joint health.",
+      "They are prone to obesity — monitor food portions carefully and limit treats.",
+      "Monthly ear cleaning is recommended as floppy ears trap moisture and can lead to infections."
+    ],
+    "labrador": [
+      "Labradors need 60–80 minutes of exercise daily — they are high-energy and prone to weight gain without it.",
+      "Labs are notorious chewers — enrichment toys and chews help prevent destructive behavior.",
+      "Their short coat needs brushing once a week; they shed heavily twice a year.",
+      "Labs are prone to obesity — measure meals carefully and avoid free feeding.",
+      "Regular joint supplements (glucosamine) may be beneficial, especially for senior Labs.",
+      "Monthly nail trimming is important as Labs are active but do not always wear down nails naturally."
+    ],
+    "chihuahua": [
+      "Chihuahuas need 20–30 minutes of light to moderate exercise per day.",
+      "Their small size makes them sensitive to cold — a coat or sweater is recommended in temperatures below 15°C.",
+      "Dental hygiene is critical; Chihuahuas are highly prone to dental disease — brush teeth daily if possible.",
+      "They can be prone to hypoglycemia (low blood sugar) — feed small meals 2–3 times a day.",
+      "Chihuahuas should be protected from rough handling — injuries are more likely due to their small frame.",
+      "Despite their size, they need daily socialization and mental enrichment to prevent anxiety."
+    ],
+    "german shepherd": [
+      "German Shepherds need 90–120 minutes of exercise daily, including both physical and mental stimulation.",
+      "Their double coat requires brushing 2–3 times per week; they shed year-round and heavily in spring/fall.",
+      "They are prone to degenerative myelopathy and hip dysplasia — regular vet monitoring is important.",
+      "Mental stimulation (obedience training, puzzle toys, scent work) is as important as physical exercise.",
+      "Their ears should be checked weekly for signs of infection or debris.",
+      "High-quality protein diet is important to maintain muscle mass and coat health."
+    ],
+    "poodle": [
+      "Poodles (standard) need 40–60 minutes of daily exercise; miniature and toy poodles need 20–40 minutes.",
+      "Their curly coat does not shed much but requires professional grooming every 6–8 weeks to prevent matting.",
+      "Daily brushing is recommended to prevent tangles between grooming appointments.",
+      "Poodles are highly intelligent and need daily mental stimulation — training sessions double as enrichment.",
+      "Ear cleaning is important as their floppy ears and hair inside the ear canal can cause infections.",
+      "Poodles are generally healthy but can be prone to Addison's disease — regular vet checkups are key."
+    ],
+    "beagle": [
+      "Beagles need at least 60 minutes of exercise daily — they are scent-driven and love to explore.",
+      "They should always be kept on a leash or in a fenced area as their nose can override recall instincts.",
+      "Beagles are prone to obesity — meals should be measured and treats limited.",
+      "Their floppy ears need weekly cleaning to prevent moisture buildup and infections.",
+      "Beagles are vocal dogs — enrichment activities help reduce excessive barking from boredom.",
+      "Their short coat needs only weekly brushing; they are moderate shedders."
+    ],
+    "shiba inu": [
+      "Shiba Inus need 40–60 minutes of vigorous exercise daily.",
+      "They have a thick double coat that requires brushing 2–3 times per week; they blow their coat seasonally.",
+      "Shiba Inus are independent and can be escape artists — ensure all outdoor areas are securely fenced.",
+      "They are generally clean dogs and do well with grooming routines.",
+      "Early socialization is important as Shibas can be reserved around strangers.",
+      "Mental enrichment such as puzzle feeders and short training sessions helps channel their intelligence."
+    ]
+  },
+  "cat": {
+    "general": [
+      "Cats need a clean litter box scooped at least once daily; a dirty box can cause behavioral issues.",
+      "Annual vet visits are recommended for healthy adult cats; senior cats (10+) benefit from biannual visits.",
+      "Cats benefit from environmental enrichment: climbing structures, window perches, and puzzle feeders.",
+      "Fresh water should always be available; many cats prefer running water (a fountain can increase intake).",
+      "Indoor cats need regular playtime to stay mentally and physically healthy — at least 15–20 minutes daily.",
+      "Dental disease is common in cats — aim to brush teeth several times per week."
+    ],
+    "persian": [
+      "Persian cats require daily coat brushing to prevent severe matting — this is non-negotiable.",
+      "Their flat (brachycephalic) face makes them prone to respiratory issues and eye discharge — monitor breathing.",
+      "Eye discharge should be cleaned gently with a damp cloth every day to prevent staining and infection.",
+      "Persian cats are lower-energy and suited to indoor living; light play sessions of 10–15 minutes are ideal.",
+      "Their facial folds should be cleaned weekly to prevent skin irritation.",
+      "Persians are prone to polycystic kidney disease (PKD) — genetic testing and regular kidney panels are recommended."
+    ],
+    "siamese": [
+      "Siamese cats are highly social and vocal — they need daily interaction and dislike being left alone for long periods.",
+      "They are active and playful; two sessions of interactive play per day (10–15 min each) are recommended.",
+      "Their short coat requires minimal grooming — a weekly brush is sufficient.",
+      "Siamese are prone to dental issues — regular teeth brushing is important.",
+      "They can be prone to respiratory infections due to their elongated facial structure — monitor for sneezing.",
+      "Environmental enrichment (toys, cat trees, puzzles) is essential for this intelligent breed."
+    ],
+    "maine coon": [
+      "Maine Coons have a semi-long coat that requires brushing 2–3 times per week to prevent tangles.",
+      "They are one of the largest domestic cat breeds — ensure food portions are calibrated to weight.",
+      "Maine Coons are playful and dog-like; daily interactive play sessions of 20–30 minutes are ideal.",
+      "They are prone to hypertrophic cardiomyopathy (HCM) — regular cardiac screenings are recommended.",
+      "Their tufted paws may collect debris — check and clean paws weekly.",
+      "Maine Coons enjoy water and may drink from faucets; a water fountain encourages good hydration."
+    ],
+    "british shorthair": [
+      "British Shorthairs have a dense plush coat that benefits from brushing 1–2 times per week.",
+      "They are calm and adaptable cats; moderate daily play of 15–20 minutes keeps them fit.",
+      "British Shorthairs are prone to obesity — monitor food intake carefully and avoid free feeding.",
+      "They can be prone to hypertrophic cardiomyopathy — vet screenings are advisable.",
+      "Their calm temperament makes them good candidates for indoor-only living.",
+      "Regular nail trimming every 2–3 weeks is recommended as they tend to be less active scratchers."
+    ]
+  }
+}
