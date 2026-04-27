@@ -156,6 +156,7 @@ with st.expander("➕ Add a new pet", expanded=not owner.pets):
 # Pet cards — one per registered pet
 if owner.pets:
     cols = st.columns(min(len(owner.pets), 3))
+    pet_to_delete = None
     for idx, pet in enumerate(owner.pets):
         pet_icon = "🐶" if pet.species.lower() == "dog" else (
                    "🐱" if pet.species.lower() == "cat" else "🐾")
@@ -173,6 +174,12 @@ if owner.pets:
                 f"📋 {len(pet.care_tasks)} tasks  ·  "
                 f"✔ {pet_done} done"
             )
+            if st.button("🗑 Remove", key=f"del_pet_{pet.name}", use_container_width=True):
+                pet_to_delete = pet.name
+    if pet_to_delete:
+        owner.remove_pet(pet_to_delete)
+        st.toast(f"'{pet_to_delete}' removed.")
+        st.rerun()
 else:
     st.info("No pets yet — add one above.")
 
